@@ -12,7 +12,6 @@ typedef struct {
     char symbol;
     size_t x, y;
     size_t px, py;
-    uint8_t visited;
 } node_t;
 
 uint8_t node_is_wall(node_t* self);

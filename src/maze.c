@@ -2,11 +2,6 @@
 
 #include <stdio.h>
 
-#define UP    0
-#define DOWN  1
-#define LEFT  2
-#define RIGHT 3
-
 static const int dir_x[4] = {0, 1, 0, -1};
 static const int dir_y[4] = {-1, 0, 1, 0};
 
@@ -45,9 +40,8 @@ maze_t* maze_read(char* path) {
                 .f_score = MAX_SIZE,
                 .x = j,
                 .y = i,
-                .px = -1,
-                .py = -1,
-                .visited = 0,
+                .px = 0,
+                .py = 0,
             };
         }
     }
@@ -122,7 +116,6 @@ static node_t* maze_lowest_f_score(maze_t* self) {
         self->open_set[i] = self->open_set[i+1];
     }
     
-    n->visited = 1;
     self->open_set_len--;
 
     return n;
@@ -177,7 +170,7 @@ void maze_a_star(maze_t* self) {
             if(nx >= (int)self->width || nx < 0 || ny >= (int)self->height || ny < 0) continue;
             node_t* neighbor = &self->map[ny][nx];
             
-            if(node_is_wall(neighbor) || neighbor->visited) continue;
+            if(node_is_wall(neighbor)) continue;
             
             if(curr->g_score+1 < neighbor->g_score) {
                 neighbor->px = curr->x;
