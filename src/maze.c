@@ -43,12 +43,12 @@ maze_t* maze_read(char* path) {
                 .py = 0,
             };
         }
+        if(j > 0) {
+            self->width = j;
+        }
     }
 
     self->height = i;
-    self->width = j;
-
-    fprintf(stderr, "i: %zu, j: %zu\n", i, j);
 
 #ifdef HEAP_SET
     self->open_set = heap_init(self->height * self->width);
