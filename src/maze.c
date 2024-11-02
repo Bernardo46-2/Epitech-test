@@ -2,9 +2,6 @@
 
 #include <stdio.h>
 
-static const int dir_x[4] = {0, 1, 0, -1};
-static const int dir_y[4] = {-1, 0, 1, 0};
-
 maze_t* maze_read(char* path) {
     FILE* f = fopen(path, "r");
     if(!f) {
@@ -29,11 +26,13 @@ maze_t* maze_read(char* path) {
     }
 
     char buf[MAX_DIM+2];
+    size_t id = 0;
 
     size_t i = 0, j = 0;
     for(i = 0; i < MAX_DIM && fgets(buf, sizeof(buf), f); i++) {
         for(j = 0; j < MAX_DIM && buf[j] != '\n' && buf[j] != '\0'; j++) {
             self->map[i][j] = (node_t) {
+                .id = id++,
                 .symbol = buf[j],
                 .g_score = MAX_SIZE,
                 .h_score = MAX_SIZE,
@@ -49,9 +48,11 @@ maze_t* maze_read(char* path) {
     self->height = i;
     self->width = j;
 
-    self->open_set_len = 0;
-    self->open_set_cap = self->height * self->width;
-    self->open_set = (node_t**)malloc(self->open_set_cap * sizeof(node_t*));
+#ifdef HEAP_SET
+    self->open_set = heap_init(self->height * self->width);
+#else
+    self->open_set = array_init(self->height * self->width);
+#endif
 
     fclose(f);
     
@@ -73,11 +74,20 @@ void maze_print(maze_t* self) {
 }
 
 void maze_free(maze_t* self) {
-    for(size_t i = 0; i < MAX_DIM; i++) {
-        free(self->map[i]);
+    if(self) {
+        for(size_t i = 0; i < MAX_DIM; i++) {
+            free(self->map[i]);
+        }
+        free(self->map);
+
+#ifdef HEAP_SET
+        heap_free(self->open_set);
+#else
+        array_free(self->open_set);
+#endif
+        
+        free(self);
     }
-    free(self->map);
-    free(self);
 }
 
 static inline int maze_heuristic(int src_x, int src_y, int dest_x, int dest_y) {
@@ -85,40 +95,27 @@ static inline int maze_heuristic(int src_x, int src_y, int dest_x, int dest_y) {
 }
 
 static void maze_add_to_open_set(maze_t* self, node_t* node) {
-    if(self->open_set_len >= self->open_set_cap) {
-        fprintf(stderr, "error: can't push to open_set in `maze_add_to_open_set` function\n");
-        exit(1);
-    }
-
-    for(size_t i = 0; i < self->open_set_len; i++) {
-        if(node_equals(self->open_set[i], node)) {
-            return;
-        }
-    }
-    
-    self->open_set[self->open_set_len++] = node;
+#ifdef HEAP_SET
+    heap_push(self->open_set, node);
+#else
+    array_push(self->open_set, node);
+#endif
 }
 
 static node_t* maze_lowest_f_score(maze_t* self) {
-    if(self->open_set_len == 0) return NULL;
+#ifdef HEAP_SET
+    return heap_pop(self->open_set);
+#else
+    return array_pop(self->open_set);
+#endif
+}
 
-    node_t* n = self->open_set[0];
-    size_t idx = 0;
-    
-    for(size_t i = 0; i < self->open_set_len; i++) {
-        if(self->open_set[i]->f_score < n->f_score) {
-            n = self->open_set[i];
-            idx = i;
-        }
-    }
-
-    for(size_t i = idx; i < self->open_set_len-1; i++) {
-        self->open_set[i] = self->open_set[i+1];
-    }
-    
-    self->open_set_len--;
-
-    return n;
+static uint8_t maze_is_set_empty(maze_t* self) {
+#ifdef HEAP_SET
+    return heap_is_empty(self->open_set);
+#else
+    return array_is_empty(self->open_set);
+#endif
 }
 
 static void maze_trace_path(maze_t* self, node_t* start, node_t* end) {
@@ -138,6 +135,9 @@ void maze_a_star(maze_t* self) {
         exit(1);
     }
     
+    const int delta_x[4] = {0, 1, 0, -1};
+    const int delta_y[4] = {-1, 0, 1, 0};
+
     size_t src_x = 0; 
     size_t src_y = 0;
     size_t dest_x = self->width-1;
@@ -149,8 +149,12 @@ void maze_a_star(maze_t* self) {
     start->h_score = maze_heuristic(src_x, src_y, dest_x, dest_y);
     start->f_score = start->h_score;
     maze_add_to_open_set(self, start);
+
+    if(node_is_wall(start)) {
+        goto error;
+    }
     
-    while(self->open_set_len) {
+    while(!maze_is_set_empty(self)) {
         node_t* curr = maze_lowest_f_score(self);
 
         if(!curr) {
@@ -164,8 +168,8 @@ void maze_a_star(maze_t* self) {
         }
 
         for(size_t i = 0; i < 4; i++) {
-            int nx = curr->x + dir_x[i];
-            int ny = curr->y + dir_y[i];
+            int nx = curr->x + delta_x[i];
+            int ny = curr->y + delta_y[i];
 
             if(nx >= (int)self->width || nx < 0 || ny >= (int)self->height || ny < 0) continue;
             node_t* neighbor = &self->map[ny][nx];

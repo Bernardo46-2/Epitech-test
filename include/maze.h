@@ -6,6 +6,12 @@
 #include "util.h"
 #include "node.h"
 
+#ifdef HEAP_SET
+#include "heap.h"
+#else
+#include "array.h"
+#endif
+
 #define MIN_DIM 1
 #define MAX_DIM 10000
 
@@ -13,9 +19,12 @@ typedef struct {
     node_t** map;
     size_t width;
     size_t height;
-    node_t** open_set;
-    size_t open_set_len;
-    size_t open_set_cap;
+
+#ifdef HEAP_SET
+    heap_t* open_set;
+#else
+    array_t* open_set;
+#endif
 } maze_t;
 
 maze_t* maze_read(char* path);

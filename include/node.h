@@ -6,6 +6,7 @@
 #include "util.h"
 
 typedef struct {
+    size_t id;
     size_t g_score;
     size_t h_score;
     size_t f_score;
