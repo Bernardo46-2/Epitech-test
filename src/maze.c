@@ -27,10 +27,11 @@ maze_t* maze_read(char* path) {
 
     char buf[MAX_DIM+2];
     size_t id = 0;
+    node_t* tmp = NULL;
 
     size_t i = 0, j = 0;
     for(i = 0; i < MAX_DIM && fgets(buf, sizeof(buf), f); i++) {
-        for(j = 0; j < MAX_DIM && buf[j] != '\n' && buf[j] != '\0'; j++) {
+        for(j = 0; j < MAX_DIM && (buf[j] == '*' || buf[j] == 'X'); j++) {
             self->map[i][j] = (node_t) {
                 .id = id++,
                 .symbol = buf[j],
@@ -42,13 +43,12 @@ maze_t* maze_read(char* path) {
                 .px = 0,
                 .py = 0,
             };
-        }
-        if(j > 0) {
-            self->width = j;
+            tmp = &self->map[i][j];
         }
     }
 
-    self->height = i;
+    self->height = tmp->y + 1;
+    self->width = tmp->x + 1;
 
 #ifdef HEAP_SET
     self->open_set = heap_init(self->height * self->width);

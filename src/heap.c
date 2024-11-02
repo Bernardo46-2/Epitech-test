@@ -27,7 +27,7 @@ heap_t* heap_init(size_t size) {
         fprintf(stderr, "error: couldn't allocate memory in `heap_init` function\n");
         exit(1);
     }
-    
+
     return self;
 }
 
@@ -97,7 +97,6 @@ void heap_push(heap_t* self, node_t* value) {
 
     if(self->len == self->cap) {
         fprintf(stderr, "error: can't push to heap in `heap_push` function\n");
-        fprintf(stderr, "len: %zu, cap: %zu\n", self->len, self->cap);
         exit(1);
     }
 
