@@ -48,6 +48,8 @@ maze_t* maze_read(char* path) {
     self->height = i;
     self->width = j;
 
+    fprintf(stderr, "i: %zu, j: %zu\n", i, j);
+
 #ifdef HEAP_SET
     self->open_set = heap_init(self->height * self->width);
 #else

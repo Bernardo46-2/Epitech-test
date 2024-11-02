@@ -9,7 +9,6 @@ typedef struct {
     size_t cap;
     
     uint8_t* bits;
-    size_t bits_len;
 } heap_t;
 
 heap_t* heap_init(size_t size);

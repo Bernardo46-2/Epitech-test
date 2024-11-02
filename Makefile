@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Iinclude -Wall -Wextra -Werror
+CFLAGS = -Iinclude -DHEAP_SET -Wall -Wextra -Werror
 
 SRC_DIR = src
 INCLUDE_DIR = include

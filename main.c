@@ -1,7 +1,5 @@
 #include <stdio.h>
 
-#define HEAP_SET
-
 #include "include/maze.h"
 
 int main(int argc, char** argv) {
