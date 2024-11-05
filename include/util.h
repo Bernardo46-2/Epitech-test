@@ -16,6 +16,12 @@ typedef long int64_t;
 typedef float float32_t;
 typedef double float64_t;
 
+/**
+ * @brief Calculates the absolute value of an integer
+ *
+ * @param x Integer to get abs value from
+ * @return Abs value of number
+ */
 int abs(int x);
 
 #endif

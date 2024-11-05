@@ -84,11 +84,3 @@ node_t* array_pop(array_t* self) {
 
     return n;
 }
-
-void array_print(array_t* self) {
-    printf("[");
-    for(size_t i = 0; i < self->len; i++) {
-        printf("(%zu, %zu) ", self->vec[i]->x, self->vec[i]->y);
-    }
-    printf("]\n");
-}
